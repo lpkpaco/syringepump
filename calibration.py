@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
-import time 
+import time
+import keyboard
 GPIO.cleanup()
 global negative
 global positive
@@ -12,6 +13,7 @@ timex=0.005
 positive=0
 negative=0
 y=0
+overflow = 0
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(out1,GPIO.OUT)
 GPIO.setup(out2,GPIO.OUT)
@@ -21,78 +23,84 @@ x = 0
 global i
 i = 0
 def forward():
-    for y in range(x,0,-1):
-        global negative
-        global i
-        if negative==1:
+    if overflow == 0:
+        for y in range(x,0,-1):
+            global negative
+            global i
+            if negative==1:
+                if i==7:
+                    i=0
+                else:
+                    i=i+1
+                y=y+2
+                negative=0
+            positive=1
+            #print((x+1)-y)
+            if i==0:
+                GPIO.output(out1,GPIO.HIGH)
+                GPIO.output(out2,GPIO.LOW)
+                GPIO.output(out3,GPIO.LOW)
+                GPIO.output(out4,GPIO.LOW)
+                time.sleep(timex)
+                #time.sleep(1)
+            elif i==1:
+                GPIO.output(out1,GPIO.HIGH)
+                GPIO.output(out2,GPIO.HIGH)
+                GPIO.output(out3,GPIO.LOW)
+                GPIO.output(out4,GPIO.LOW)
+                time.sleep(timex)
+                #time.sleep(1)
+            elif i==2:  
+                GPIO.output(out1,GPIO.LOW)
+                GPIO.output(out2,GPIO.HIGH)
+                GPIO.output(out3,GPIO.LOW)
+                GPIO.output(out4,GPIO.LOW)
+                time.sleep(timex)
+                #time.sleep(1)
+            elif i==3:    
+                GPIO.output(out1,GPIO.LOW)
+                GPIO.output(out2,GPIO.HIGH)
+                GPIO.output(out3,GPIO.HIGH)
+                GPIO.output(out4,GPIO.LOW)
+                time.sleep(timex)
+                #time.sleep(1)
+            elif i==4:  
+                GPIO.output(out1,GPIO.LOW)
+                GPIO.output(out2,GPIO.LOW)
+                GPIO.output(out3,GPIO.HIGH)
+                GPIO.output(out4,GPIO.LOW)
+                time.sleep(timex)
+                #time.sleep(1)
+            elif i==5:
+                GPIO.output(out1,GPIO.LOW)
+                GPIO.output(out2,GPIO.LOW)
+                GPIO.output(out3,GPIO.HIGH)
+                GPIO.output(out4,GPIO.HIGH)
+                time.sleep(timex)
+                #time.sleep(1)
+            elif i==6:    
+                GPIO.output(out1,GPIO.LOW)
+                GPIO.output(out2,GPIO.LOW)
+                GPIO.output(out3,GPIO.LOW)
+                GPIO.output(out4,GPIO.HIGH)
+                time.sleep(timex)
+                #time.sleep(1)
+            elif i==7:    
+                GPIO.output(out1,GPIO.HIGH)
+                GPIO.output(out2,GPIO.LOW)
+                GPIO.output(out3,GPIO.LOW)
+                GPIO.output(out4,GPIO.HIGH)
+                time.sleep(timex)
+                #time.sleep(1)
             if i==7:
                 i=0
-            else:
-                i=i+1
-            y=y+2
-            negative=0
-        positive=1
-        #print((x+1)-y)
-        if i==0:
-            GPIO.output(out1,GPIO.HIGH)
-            GPIO.output(out2,GPIO.LOW)
-            GPIO.output(out3,GPIO.LOW)
-            GPIO.output(out4,GPIO.LOW)
-            time.sleep(timex)
-            #time.sleep(1)
-        elif i==1:
-            GPIO.output(out1,GPIO.HIGH)
-            GPIO.output(out2,GPIO.HIGH)
-            GPIO.output(out3,GPIO.LOW)
-            GPIO.output(out4,GPIO.LOW)
-            time.sleep(timex)
-            #time.sleep(1)
-        elif i==2:  
-            GPIO.output(out1,GPIO.LOW)
-            GPIO.output(out2,GPIO.HIGH)
-            GPIO.output(out3,GPIO.LOW)
-            GPIO.output(out4,GPIO.LOW)
-            time.sleep(timex)
-            #time.sleep(1)
-        elif i==3:    
-            GPIO.output(out1,GPIO.LOW)
-            GPIO.output(out2,GPIO.HIGH)
-            GPIO.output(out3,GPIO.HIGH)
-            GPIO.output(out4,GPIO.LOW)
-            time.sleep(timex)
-            #time.sleep(1)
-        elif i==4:  
-            GPIO.output(out1,GPIO.LOW)
-            GPIO.output(out2,GPIO.LOW)
-            GPIO.output(out3,GPIO.HIGH)
-            GPIO.output(out4,GPIO.LOW)
-            time.sleep(timex)
-            #time.sleep(1)
-        elif i==5:
-            GPIO.output(out1,GPIO.LOW)
-            GPIO.output(out2,GPIO.LOW)
-            GPIO.output(out3,GPIO.HIGH)
-            GPIO.output(out4,GPIO.HIGH)
-            time.sleep(timex)
-            #time.sleep(1)
-        elif i==6:    
-            GPIO.output(out1,GPIO.LOW)
-            GPIO.output(out2,GPIO.LOW)
-            GPIO.output(out3,GPIO.LOW)
-            GPIO.output(out4,GPIO.HIGH)
-            time.sleep(timex)
-            #time.sleep(1)
-        elif i==7:    
-            GPIO.output(out1,GPIO.HIGH)
-            GPIO.output(out2,GPIO.LOW)
-            GPIO.output(out3,GPIO.LOW)
-            GPIO.output(out4,GPIO.HIGH)
-            time.sleep(timex)
-            #time.sleep(1)
-        if i==7:
-            i=0
-            continue
-        i=i+1
+                continue
+            i=i+1
+    elif overflow == 1:
+        return
+    else:
+        print("Error")
+        exit()
 def reverse():
     global x
     global positive
@@ -167,7 +175,7 @@ def reverse():
         if i==0:
             i=7
             continue
-        i=i-1 
+        i=i-1
 
 def demo():
     global count
@@ -208,5 +216,18 @@ try:
             stepcount += 1
             print(stepcount)
 except KeyboardInterrupt:
+    overflow = 1
+    print(stepcount)
+    time.sleep(0.5)
+    x = -(x)
+    global counting
+    counting = 0
+    while counting <= stepcount:
+        if x < 0:
+            reverse()
+            counting += 1
+        if x > 0:
+            forward()
+            counting += 1
     GPIO.cleanup()
     exit()
