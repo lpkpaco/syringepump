@@ -1,4 +1,9 @@
-def reverse(overflow, out1, out2, out3, out4, timex):
+try:
+    import RPi.GPIO as GPIO
+    import time
+except:
+    pass
+def reverse(out1, out2, out3, out4, timex):
     global x
     global positive
     global i

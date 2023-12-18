@@ -1,8 +1,10 @@
 import RPi.GPIO as GPIO
 import time
 import multiprocessing as multi
+from multiprocessing import Process
 import fx.forward as forward
 import fx.reverse as reverse
+import os
 print("CPU cores available: " + multi.cpu_count())
 pool = multi.Pool()
 forward = multi.Process(target=forward())
@@ -26,59 +28,65 @@ GPIO.setup(out2,GPIO.OUT)
 GPIO.setup(out3,GPIO.OUT)
 GPIO.setup(out4,GPIO.OUT)
 x = 0
-global i
-i = 0
-def demo():
-    global count
-    global x
-    count = 0 
-    while count <= 2:
+if __name__ == "__main__":
+    pf = Process(target=forward.forward, args=(out1, out2, out3, out4, timex, x,))
+    pr = Process(target=reverse.reverse, args=(out1, out2, out3, out4, timex, x,))
+    try:
+        while(1):
+            GPIO.output(out1,GPIO.LOW)
+            GPIO.output(out2,GPIO.LOW)
+            GPIO.output(out3,GPIO.LOW)
+            GPIO.output(out4,GPIO.LOW)
+            x = input()
+            global stepcount
+            stepcount = 0
+            try:
+                x= int(x)
+            except:
+                continue
+            if x>0 and x<=400:
+                x = 1
+                while True:
+                    pf.start()
+                    pf.join()
+                    stepcount += 1
+                    print(stepcount)
+                    time.sleep(0.1)
+            elif x<0 and x>=-400:
+                x = -1
+                while True:
+                    pr.start()
+                    pr.join()
+                    stepcount += 1
+                    print(stepcount)
+                    time.sleep(0.1)
+    except KeyboardInterrupt:
+        try:
+            pf.kill()
+            pr.kill()
+        except:
+            pass
+        print(stepcount)
+        time.sleep(0.5)
+        x = -(x)
+        global counting
+        counting = 0
         if x < 0:
-            x = -(x)
-        forward()
+            while counting <= stepcount:
+                pr.start()
+                pr.join()
+                counting += 1
+                time.sleep(0.1)
+            pr.kill()
+            GPIO.cleanup()
+            exit()
         if x > 0:
-            x = -(x)
-        reverse()
-        reverse()                                                                                                                                                                           
-        count += 1
-try:
-   while(1):
-      GPIO.output(out1,GPIO.LOW)
-      GPIO.output(out2,GPIO.LOW)
-      GPIO.output(out3,GPIO.LOW)
-      GPIO.output(out4,GPIO.LOW)
-      x = input()
-      global stepcount
-      stepcount = 0
-      try:
-        x= int(x)
-      except:
-          continue
-      if x>0 and x<=400:
-        x = 1
-        while True:
-            forward()
-            stepcount += 1
-            print(stepcount)
-      elif x<0 and x>=-400:
-        x = -1
-        while True:
-            reverse()
-            stepcount += 1
-            print(stepcount)
-except KeyboardInterrupt:
-    overflow = 1
-    print(stepcount)
-    time.sleep(0.5)
-    x = -(x)
-    global counting
-    counting = 0
-    while counting <= stepcount:
-        if x < 0:
-            reverse()
-            counting += 1
-        if x > 0:
-            forward()
-            counting += 1
-    GPIO.cleanup()
-    exit()
+            while counting <= stepcount:
+                pf.start()
+                pf.join()
+                counting += 1
+                time.sleep(0.1)
+            pf.kill()
+            GPIO.cleanup()
+        GPIO.cleanup()
+        exit()
