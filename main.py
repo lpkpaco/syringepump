@@ -47,16 +47,22 @@ if __name__ == "__main__":
             if x>0 and x<=400:
                 x = 1
                 while True:
-                    pf.start()
-                    pf.join()
+                    try:
+                        pf.start()
+                        pf.join()
+                    except:
+                        pass
                     stepcount += 1
                     print(stepcount)
                     time.sleep(0.1)
             elif x<0 and x>=-400:
                 x = -1
                 while True:
-                    pr.start()
-                    pr.join()
+                    try:
+                        pr.start()
+                        pr.join()
+                    except:
+                        pass
                     stepcount += 1
                     print(stepcount)
                     time.sleep(0.1)
